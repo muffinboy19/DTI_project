@@ -1,0 +1,10 @@
+.env
+video
+.vscode
+__pycache__
+models
+
+virtual/
+fighting.ipynb
+index.html
+temp.py
