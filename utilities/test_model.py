@@ -2,38 +2,66 @@ import cv2
 import tensorflow as tf
 import numpy as np
 import time
-from utilities.notify_user import send_notification
+from utilities.save_video import save_video_toDB
+from utilities.view_video import record_video
+from googlesol import ColabArgs, main
 
-def detect(rtsp_url):
-    camera=cv2.VideoCapture(rtsp_url)
-    model=tf.keras.models.load_model('exp_vs_acc_vs_normal_for_img.h5')
+import tracemalloc
 
-    while True:
-        success, frame = camera.read()
-        if not success:
-            break
+tracemalloc.start()
+
+def model2(frame_list):
+    model = tf.keras.models.load_model("models\exp_vs_acc_vs_normal_for_img.h5")
+    result = model.predict(np.asarray(frame_list))
+    ct = [0] * 4
+    for i in range(10):
+        if np.argmax(result) == 0 and result[i][0] > 0.60:
+            ct[0] += 1
+        elif np.argmax(result) == 1 and result[i][1] > 0.6:
+            ct[1] += 1
+        elif np.argmax(result) == 2 and result[i][2] > 0.6:
+            ct[2] += 1
         else:
-            buffer_frame=frame
-            resized_frame=cv2.resize(frame, (100,100))
-            
-            list.append(resized_frame)
-            if len(list)==10:
-                ct=[0]*4
-                result=model.predict(np.asarray(list))
-                for i in range(10):
-                    if np.argmax(result)==0 and result[i][0]>0.60:
-                        ct[0]+=1
-                    elif np.argmax(result)==1 and result[i][1]>0.6:
-                        ct[1]+=1
-                    elif np.argmax(result)==2 and result[i][2]>0.6:
-                        ct[2]+=1
-                    else : ct[3]+=1
-                max_value = max(ct)
-                max_indices = [i for i, value in enumerate(ct) if value == max_value]
-                if max_indices==1 or max_indices==2:
-                    send_notification()
-                    break
-                list=[]
-        time.sleep(0.1)
+            ct[3] += 1
 
-    return "ended"
+    max_value = max(ct)
+    max_indices = [i for i, value in enumerate(ct) if value == max_value]
+    if max_indices == 1 or max_indices == 2:
+        print("anomaly")
+        return "break"
+    else:
+        print("nothing")
+        return "continue"
+
+
+def detect(rtsp_url, camera_id):
+    print(camera_id)
+    while True:
+        frame_list_for_model2 = record_video(rtsp_url)
+        test_data = ColabArgs(
+            "models\model_16_m3_0.8888.pth",
+            False,
+            "video\\recorded_video.avi",
+            "test/sample.mp4",
+            16,
+            20,
+            True,
+        )
+        result_from_model1 = main(test_data)
+        print(result_from_model1)
+        fighting_prob = result_from_model1[0][0]
+        normal_prob = result_from_model1[0][1]
+
+        fighting_prob_ = float(f"{fighting_prob:.5f}")
+        normal_prob_ = float(f"{normal_prob:.5f}")
+
+        if fighting_prob_ > 0.80:
+            print("fighting")
+            break
+        elif normal_prob_ > 0.80:
+            print("normal")
+        else:
+            model2_result = model2(frame_list_for_model2)
+            if model2_result == "break":
+                break
+    save_video_toDB(camera_id)
