@@ -15,24 +15,22 @@ def model2(frame_list):
     result = model.predict(np.asarray(frame_list))
     ct = [0] * 4
     for i in range(10):
-        if np.argmax(result) == 0 and result[i][0] > 0.60:
+        if np.argmax(result) == 0:
             ct[0] += 1
-        elif np.argmax(result) == 1 and result[i][1] > 0.6:
+        elif np.argmax(result) == 1:
             ct[1] += 1
-        elif np.argmax(result) == 2 and result[i][2] > 0.6:
+        elif np.argmax(result) == 2:
             ct[2] += 1
-        else:
-            ct[3] += 1
 
     max_value = max(ct)
     max_indices = [i for i, value in enumerate(ct) if value == max_value]
-    if max_indices == 1 or max_indices == 2:
-        print("anomaly")
-        return "break"
+    if max_indices == 1:
+        prediction="explosion"
+    elif max_indices == 2:
+        prediction="accident"
     else:
-        print("nothing")
-        return "continue"
-
+        prediction="normal"
+    return prediction
 
 def detect(rtsp_url, camera_id):
     print(camera_id)
@@ -55,13 +53,13 @@ def detect(rtsp_url, camera_id):
         fighting_prob_ = float(f"{fighting_prob:.5f}")
         normal_prob_ = float(f"{normal_prob:.5f}")
 
-        if fighting_prob_ > 0.80:
-            print("fighting")
+        if fighting_prob_ > 0.92:
+            prediction='fighting'
             break
-        elif normal_prob_ > 0.80:
-            print("normal")
+        elif normal_prob_ > 0.92:
+            continue
         else:
             model2_result = model2(frame_list_for_model2)
-            if model2_result == "break":
+            if model2_result != 'normal':
                 break
-    save_video_toDB(camera_id)
+    save_video_toDB(camera_id,prediction)

@@ -74,7 +74,6 @@ def view_video():
         user_data = token["msg"]
 
         camera_id = request.args.get("id")
-        print(camera_id)
         if camera_id == None:
             return make_response(
                 jsonify({"status": "error", "msg": "camera id not provided"}), 400
@@ -82,6 +81,7 @@ def view_video():
 
         camera = cameras.find_one({"_id": ObjectId(camera_id)})
         rtsp_url = camera["rtsp_url"]
+        rtsp_url=int(rtsp_url)
 
         return Response(
             live_stream(rtsp_url), mimetype="multipart/x-mixed-replace; boundary=frame"

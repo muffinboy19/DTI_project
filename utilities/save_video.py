@@ -12,7 +12,7 @@ def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 
-def save_video_toDB(camera_id):
+def save_video_toDB(camera_id,prediction):
     random_name = uuid4().hex
     current_time = str(datetime.datetime.now())
 
@@ -22,11 +22,11 @@ def save_video_toDB(camera_id):
     )
 
     video_url = upload_video(random_name)
-    print(video_url)
     recording = {
         "video_url": video_url,
         "current_time": current_time,
         "filename": random_name,
+        "anomaly":prediction
     }
 
     save_recording_to_camera = cameras.update_one(
