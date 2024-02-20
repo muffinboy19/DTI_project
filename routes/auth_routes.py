@@ -5,6 +5,7 @@ import jwt
 import os
 import json
 from bson import json_util
+from datetime import datetime, timedelta
 
 
 def parse_json(data):
@@ -44,6 +45,7 @@ def login():
                 "user_id": id,
                 "email": existing_user["email"],
                 "name": existing_user["name"],
+                "exp": datetime.utcnow() + timedelta(days=150)
             },
             os.getenv("SECRET_KEY"),
             algorithm="HS256",
@@ -106,7 +108,12 @@ def register():
         id = parse_json(saved_user.inserted_id)
 
         token = jwt.encode(
-            {"user_id": id, "email": email, "name": name},
+            {
+                "user_id": id,
+                "email": email, 
+                "name": name,
+                "exp": datetime.utcnow() + timedelta(days=150)
+            },
             os.getenv("SECRET_KEY"),
             algorithm="HS256",
         )
