@@ -28,14 +28,17 @@ def record_video(rtsp_url):
             out.write(frame)
             resized_frame = cv2.resize(frame, (100, 100))
             list.append(resized_frame)
+        else:
+            break
         frame_count += 1
 
     new_list = []
-    iterate_over_frames = 0
-    while iterate_over_frames < max_frames:
-        new_list.append(list[iterate_over_frames])
-        iterate_over_frames += 40
+    if frame_count >= 400:
+        iterate_over_frames = 0
+        while iterate_over_frames < max_frames:
+            new_list.append(list[iterate_over_frames])
+            iterate_over_frames += 40
 
-    cap.release()
-    out.release()
+        cap.release()
+        out.release()
     return new_list

@@ -10,6 +10,7 @@ import tracemalloc
 
 tracemalloc.start()
 
+
 def model2(frame_list):
     model = tf.keras.models.load_model("models\exp_vs_acc_vs_normal_for_img.h5")
     result = model.predict(np.asarray(frame_list))
@@ -25,15 +26,18 @@ def model2(frame_list):
     max_value = max(ct)
     max_indices = [i for i, value in enumerate(ct) if value == max_value]
     if max_indices == 1:
-        prediction="explosion"
+        prediction = "explosion"
     elif max_indices == 2:
-        prediction="accident"
+        prediction = "accident"
     else:
-        prediction="normal"
+        prediction = "normal"
     return prediction
 
-def detect(rtsp_url, camera_id):
+
+def detect(rtsp_url, camera_id, device_token):
     print(camera_id)
+    print(device_token)
+    flag = 0
     while True:
         frame_list_for_model2 = record_video(rtsp_url)
         test_data = ColabArgs(
@@ -47,19 +51,29 @@ def detect(rtsp_url, camera_id):
         )
         result_from_model1 = main(test_data)
         print(result_from_model1)
+
+        if len(result_from_model1) == 0:
+            flag = 1
+            break
         fighting_prob = result_from_model1[0][0]
         normal_prob = result_from_model1[0][1]
 
         fighting_prob_ = float(f"{fighting_prob:.5f}")
         normal_prob_ = float(f"{normal_prob:.5f}")
 
-        if fighting_prob_ > 0.92:
-            prediction='fighting'
+        if fighting_prob_ >= 0.92:
+            prediction = "fighting"
             break
-        elif normal_prob_ > 0.92:
+        elif normal_prob_ >= 0.92:
             continue
         else:
-            model2_result = model2(frame_list_for_model2)
-            if model2_result != 'normal':
+            if len(frame_list_for_model2) < 10:
+                flag = 1
                 break
-    save_video_toDB(camera_id,prediction)
+            model2_result = model2(frame_list_for_model2)
+            if model2_result != "normal":
+                prediction = model2_result
+                break
+
+    if flag == 0:
+        save_video_toDB(camera_id, prediction, device_token)

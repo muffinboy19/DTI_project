@@ -3,6 +3,7 @@ import datetime
 import json
 
 from utilities.uploading_video import upload_video
+from utilities.notify_user import send_notification
 from config.db_config import cameras
 from bson.objectid import ObjectId
 
@@ -12,7 +13,7 @@ def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 
-def save_video_toDB(camera_id,prediction):
+def save_video_toDB(camera_id,prediction,device_token):
     random_name = uuid4().hex
     current_time = str(datetime.datetime.now())
 
@@ -32,4 +33,13 @@ def save_video_toDB(camera_id,prediction):
     save_recording_to_camera = cameras.update_one(
         {"_id": ObjectId(camera_id)}, {"$push": {"recordings": recording}}
     )
-    return "saved"
+
+    user_camera=cameras.find_one({"_id": ObjectId(camera_id)})
+    camera_name=user_camera['camera_name']
+
+    token_list=[]
+    token_list.append(device_token)
+
+    send_notification(f'{prediction} detected!', f'we detected an anomaly in your {camera_name}', token_list)
+    return 
+    

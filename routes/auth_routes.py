@@ -135,8 +135,3 @@ def register():
             500,
         )
 
-
-# logout
-@auth_blueprint.route("/logout", methods=["POST"])
-def logout():
-    return "logout"

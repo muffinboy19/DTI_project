@@ -23,7 +23,7 @@ user_blueprint = Blueprint("user_blueprint", __name__)
 
 
 # start service
-@user_blueprint.route("/start", methods=["GET"])
+@user_blueprint.route("/start", methods=["POST"])
 def start_service():
     try:
         token = isAuth()
@@ -32,10 +32,13 @@ def start_service():
 
         user_data = token["msg"]
 
-        camera_id = request.args.get("id")
-        if camera_id == None:
+        camera_data = request.get_json()
+        device_token = camera_data.get("device_token")
+        camera_id = camera_data.get("camera_id")
+
+        if camera_id == None or device_token == None:
             return make_response(
-                jsonify({"status": "error", "msg": "camera id not provided"}), 400
+                jsonify({"status": "error", "msg": "all req fileds not provided"}), 400
             )
 
         camera = cameras.find_one({"_id": ObjectId(camera_id)})
@@ -44,11 +47,13 @@ def start_service():
             {"_id": ObjectId(camera_id)}, {"$set": {"camera_status": "on"}}
         )
 
+        print(rtsp_url)
         thread = Thread(
             target=detect,
             args=(
                 rtsp_url,
                 camera_id,
+                device_token,
             ),
         )
         thread.start()
@@ -81,7 +86,7 @@ def view_video():
 
         camera = cameras.find_one({"_id": ObjectId(camera_id)})
         rtsp_url = camera["rtsp_url"]
-        rtsp_url=int(rtsp_url)
+        print(rtsp_url)
 
         return Response(
             live_stream(rtsp_url), mimetype="multipart/x-mixed-replace; boundary=frame"
@@ -92,4 +97,3 @@ def view_video():
             jsonify({"status": "internal server error", "msg": "something went wrong"}),
             500,
         )
-
