@@ -1,0 +1,2 @@
+# AnomAlert
+A groundbreaking application designed to link your smartphones with installed cameras across various locations including homes, shops, roads, and highways. This multifaceted app offers users a convenient means to monitor their properties while also empowering traffic police to bolster surveillance efforts against suspicious behavior. By harnessing live video feeds and issuing alerts in the event of irregularities, AnomAlert strives to bolster community safety, tranquility, and law enforcement.
