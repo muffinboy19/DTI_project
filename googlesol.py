@@ -186,15 +186,15 @@ class ColabArgs:
         self.showInfo = show_info
 
 
-# args = ColabArgs(
-#     model_path='models/model_16_m3_0.8888.pth',
-#     streaming=False,
-#     input_path='video/demo4.avi',
-#     output_path='bin/sample.mp4',
-#     sequence_length=16,
-#     skip=20,
-#     show_info=True
-# )
+args = ColabArgs(
+    model_path='models/model_16_m3_0.8888.pth',
+    streaming=False,
+    input_path='video/vd1.mp4',
+    output_path='bin/sample.mp4',
+    sequence_length=16,
+    skip=20,
+    show_info=True
+)
 
 
 def main(args):
